@@ -1,12 +1,20 @@
 Function Get-Comment
 {
-    If($Host.name -like "*ISE*")
+Param([Parameter(Position=0)] [String] $FilePath,[Switch] $FromClipBoard)
+
+    If($FilePath)
     {
-        ([System.Management.Automation.PSParser]::Tokenize($psISE.CurrentFile.Editor.Text, [ref]$null) | `
-        ?{$_.type -like "*comment*"}).content
+        $Content = Get-Content $FilePath 
     }
-    else 
+    elseif($FromClipBoard)
     {
-        Write-Host "Works only in ISE host!"
+        $Content = [Windows.clipboard]::GetText()
     }
+    else
+    {
+        Write-Host "Please provide a file/content to look for comments."
+    }
+
+    ([System.Management.Automation.PSParser]::Tokenize($Content, [ref]$null) | `
+        Where-Object{$_.type -like "*comment*"}).content
 }
